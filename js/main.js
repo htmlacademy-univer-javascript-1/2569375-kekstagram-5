@@ -1,4 +1,5 @@
-const quantityObjects = 25;
+import {quantityObjects} from './data.js';
+import {generationInt} from './util.js';
 
 const minLikes = 15;
 
@@ -27,8 +28,6 @@ const WORDS = [
   'Я поскользнулся на банановой кожуре и уронил фотоаппарат на кота и у меня получилась фотография лучше.',
   'Лица у людей на фотке перекошены, как будто их избивают. Как можно было поймать такой неудачный момент?!'
 ];
-
-const generationInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 const generateComment = () => ({
   id: generationInt(1, maxId),
