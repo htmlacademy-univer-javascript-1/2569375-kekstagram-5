@@ -1,49 +1,44 @@
-import {quantityObjects} from './data.js';
-import {generationInt} from './util.js';
+import { getRandomNumber, getRandomElement } from './util.js';
+import { generateComments } from './data.js';
+import { renderPictures } from './render.js';
 
-const minLikes = 15;
+const shuffleArray = (array) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
 
-const maxAvatar = 6;
-const maxId = 25;
-const maxUrl = 25;
-const maxComments = 30;
-const maxLikes = 200;
+const generatePictures = () => {
+  const pictures = [];
+  const descriptions = [
+    'Фотография прекрасного пейзажа.',
+    'Счастливый момент в жизни.',
+    'Незабываемое путешествие.',
+    'Улыбка на лице.',
+    'Воспоминания о лете.',
+    'Закат в горах.',
+    'Первый снег.',
+    'Друзья и веселье.',
+    'Семейные узы.',
+    'На берегу моря.',
+  ];
 
-const NAMES = [
-  'Намджун',
-  'Чонгук',
-  'Чингачгук',
-  'Гойко Митич',
-  'Джин',
-  'Юнги',
-  'Джо Пич',
-  'Ясос Биб',
-];
+  for (let i = 1; i <= 25; i++) {
+    const comments = generateComments(getRandomNumber(0, 30));
+    pictures.push({
+      id: i,
+      url: `photos/${i}.jpg`,
+      description: getRandomElement(descriptions),
+      likes: getRandomNumber(15, 200),
+      comments: comments,
+      commentCount: comments.length,
+    });
+  }
 
-const WORDS = [
-  'Всё отлично!',
-  'В целом всё неплохо. Но не всё.',
-  'Когда вы делаете фотографию, хорошо бы убирать палец из кадра. В конце концов это просто непрофессионально.',
-  'Моя бабушка случайно чихнула с фотоаппаратом в руках и у неё получилась фотография лучше.',
-  'Я поскользнулся на банановой кожуре и уронил фотоаппарат на кота и у меня получилась фотография лучше.',
-  'Лица у людей на фотке перекошены, как будто их избивают. Как можно было поймать такой неудачный момент?!'
-];
+  return shuffleArray(pictures);
+};
 
-const generateComment = () => ({
-  id: generationInt(1, maxId),
-  avatar: `img/avatar-${generationInt(1, maxAvatar)}.svg`,
-  message: WORDS[generationInt(0, WORDS.length - 1)],
-  name: NAMES[generationInt(0, NAMES.length - 1)],
-});
-
-const generatePhoto = () => ({
-  id: generationInt(1, maxId),
-  url: `photos/${generationInt(1, maxUrl)}.jpg`,
-  description: 'Описание объекта',
-  likes: generationInt(minLikes, maxLikes),
-  comments: Array.from({ length: generationInt(0, maxComments) }, generateComment)
-});
-
-const arrayObjects = () => Array.from({ length: quantityObjects }, generatePhoto);
-
-arrayObjects();
+const picture = generatePictures();
+renderPictures(picture);
