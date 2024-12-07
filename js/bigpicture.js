@@ -2,8 +2,37 @@ const bigPictureElement = document.querySelector('.big-picture');
 const body = document.body;
 const cancelButton = bigPictureElement.querySelector('#picture-cancel');
 const commentsLoader = bigPictureElement.querySelector('.comments-loader');
+const commentsList = bigPictureElement.querySelector('.social__comments');
 
 let pictureArray = [];
+let currentCommentIndex = 0; // Текущий индекс для показанных комментариев
+const commentsPerLoad = 5; // Количество комментариев, загружаемых за раз
+
+const displayComments = (comments) => {
+  const remainingComments = comments.slice(currentCommentIndex, currentCommentIndex + commentsPerLoad);
+
+  remainingComments.forEach(({ avatar, name, message }) => {
+    const commentItem = document.createElement('li');
+    commentItem.className = 'social__comment';
+    commentItem.innerHTML = `
+      <img class="social__picture" src="${avatar}" alt="${name}" width="35" height="35">
+      <p class="social__text">${message}</p>
+    `;
+    commentsList.appendChild(commentItem);
+  });
+
+  currentCommentIndex += commentsPerLoad; // Увеличение индекса для следующей загрузки
+
+  // Обновление количества комментариев
+  const commentCountElement = bigPictureElement.querySelector('.social__comment-count');
+  const totalDisplayed = Math.min(currentCommentIndex, comments.length);
+  commentCountElement.textContent = `${totalDisplayed} из ${comments.length} комментариев`;
+
+  // Скрыть кнопку, если больше нет комментариев для загрузки
+  if (currentCommentIndex >= comments.length) {
+    commentsLoader.classList.add('hidden');
+  }
+};
 
 const openBigPicture = (pictureData) => {
   bigPictureElement.classList.remove('hidden');
@@ -15,30 +44,31 @@ const openBigPicture = (pictureData) => {
   const likesCount = bigPictureElement.querySelector('.likes-count');
   likesCount.textContent = pictureData.likes;
 
-  const commentsCount = bigPictureElement.querySelector('.comments-count');
-  commentsCount.textContent = pictureData.commentCount;
-
   const socialCaption = bigPictureElement.querySelector('.social__caption');
   socialCaption.textContent = pictureData.description;
 
-  const commentsList = bigPictureElement.querySelector('.social__comments');
-  commentsList.innerHTML = '';
+  currentCommentIndex = 0; // Сброс индекса при открытии нового изображения
+  commentsList.innerHTML = ''; // Очистка списка комментариев
 
-  pictureData.comments.forEach(({ avatar, name, message }) => {
-    const commentItem = document.createElement('li');
-    commentItem.className = 'social__comment';
-    commentItem.innerHTML = `
-      <img class="social__picture" src="${avatar}" alt="${name}" width="35" height="35">
-      <p class="social__text">${message}</p>
-    `;
-    commentsList.appendChild(commentItem);
-  });
+  // Отображение первых 5 комментариев
+  displayComments(pictureData.comments);
 
   const commentCountElement = bigPictureElement.querySelector('.social__comment-count');
-  commentCountElement.classList.add('hidden');
-  commentsLoader.classList.add('hidden');
+  commentCountElement.classList.remove('hidden');
+  commentCountElement.textContent = `${Math.min(pictureData.commentCount, commentsPerLoad)} из ${pictureData.commentCount} комментариев`;
+
+  // Условие для скрытия кнопки загрузки, если комментариев 5 или меньше
+  if (pictureData.commentCount <= commentsPerLoad) {
+    commentsLoader.classList.add('hidden');
+  } else {
+    commentsLoader.classList.remove('hidden');
+  }
 
   body.classList.add('modal-open');
+
+  commentsLoader.onclick = () => {
+    displayComments(pictureData.comments);
+  };
 };
 
 const closeBigPicture = () => {
