@@ -1,6 +1,7 @@
 import { getRandomNumber, getRandomElement } from './util.js';
 import { generateComments } from './data.js';
 import { renderPictures } from './render.js';
+import { initializeBigPicture, setPictureArray} from './bigpicture.js';
 
 const shuffleArray = (array) => {
   for (let i = array.length - 1; i > 0; i--) {
@@ -11,7 +12,7 @@ const shuffleArray = (array) => {
 };
 
 const generatePictures = () => {
-  const pictures = [];
+  const picture = [];
   const descriptions = [
     'Фотография прекрасного пейзажа.',
     'Счастливый момент в жизни.',
@@ -27,7 +28,7 @@ const generatePictures = () => {
 
   for (let i = 1; i <= 25; i++) {
     const comments = generateComments(getRandomNumber(0, 30));
-    pictures.push({
+    picture.push({
       id: i,
       url: `photos/${i}.jpg`,
       description: getRandomElement(descriptions),
@@ -37,8 +38,11 @@ const generatePictures = () => {
     });
   }
 
-  return shuffleArray(pictures);
+  return shuffleArray(picture);
 };
 
-const picture = generatePictures();
-renderPictures(picture);
+const pictures = generatePictures();
+
+renderPictures(pictures);
+setPictureArray(pictures);
+initializeBigPicture();
