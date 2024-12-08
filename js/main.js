@@ -1,7 +1,8 @@
 import { getRandomNumber, getRandomElement } from './util.js';
 import { generateComments } from './data.js';
 import { renderPictures } from './render.js';
-import { initializeBigPicture, setPictureArray} from './bigpicture.js';
+import { initializeBigPicture, setPictureArray } from './bigpicture.js';
+import './validation.js';
 
 const shuffleArray = (array) => {
   for (let i = array.length - 1; i > 0; i--) {

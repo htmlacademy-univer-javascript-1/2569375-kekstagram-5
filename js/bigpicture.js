@@ -5,8 +5,8 @@ const commentsLoader = bigPictureElement.querySelector('.comments-loader');
 const commentsList = bigPictureElement.querySelector('.social__comments');
 
 let pictureArray = [];
-let currentCommentIndex = 0; // Текущий индекс для показанных комментариев
-const commentsPerLoad = 5; // Количество комментариев, загружаемых за раз
+let currentCommentIndex = 0;
+const commentsPerLoad = 5;
 
 const displayComments = (comments) => {
   const remainingComments = comments.slice(currentCommentIndex, currentCommentIndex + commentsPerLoad);
@@ -21,14 +21,12 @@ const displayComments = (comments) => {
     commentsList.appendChild(commentItem);
   });
 
-  currentCommentIndex += commentsPerLoad; // Увеличение индекса для следующей загрузки
+  currentCommentIndex += commentsPerLoad;
 
-  // Обновление количества комментариев
   const commentCountElement = bigPictureElement.querySelector('.social__comment-count');
   const totalDisplayed = Math.min(currentCommentIndex, comments.length);
   commentCountElement.textContent = `${totalDisplayed} из ${comments.length} комментариев`;
 
-  // Скрыть кнопку, если больше нет комментариев для загрузки
   if (currentCommentIndex >= comments.length) {
     commentsLoader.classList.add('hidden');
   }
@@ -47,17 +45,15 @@ const openBigPicture = (pictureData) => {
   const socialCaption = bigPictureElement.querySelector('.social__caption');
   socialCaption.textContent = pictureData.description;
 
-  currentCommentIndex = 0; // Сброс индекса при открытии нового изображения
-  commentsList.innerHTML = ''; // Очистка списка комментариев
+  currentCommentIndex = 0;
+  commentsList.innerHTML = '';
 
-  // Отображение первых 5 комментариев
   displayComments(pictureData.comments);
 
   const commentCountElement = bigPictureElement.querySelector('.social__comment-count');
   commentCountElement.classList.remove('hidden');
   commentCountElement.textContent = `${Math.min(pictureData.commentCount, commentsPerLoad)} из ${pictureData.commentCount} комментариев`;
 
-  // Условие для скрытия кнопки загрузки, если комментариев 5 или меньше
   if (pictureData.commentCount <= commentsPerLoad) {
     commentsLoader.classList.add('hidden');
   } else {
