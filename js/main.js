@@ -3,6 +3,7 @@ import { generateComments } from './data.js';
 import { renderPictures } from './render.js';
 import { initializeBigPicture, setPictureArray } from './bigpicture.js';
 import './validation.js';
+import './image-editor.js';
 
 const shuffleArray = (array) => {
   for (let i = array.length - 1; i > 0; i--) {
