@@ -1,6 +1,12 @@
 import { sendData } from './api.js';
 
 const MAX_HASHTAGS = 5;
+const PARSE_INT = 10;
+const SCALE_STEP = 25;
+const MIN_SCALE = 25;
+const MAX_SCALE = 100;
+const DEFAULT_SCALE = 100;
+const SCALE_UPDATE = 100;
 const MAX_DESCRIPTION_LENGTH = 140;
 const HASHTAG = /^#[A-Za-z0-9а-яё]{1,19}$/i;
 
@@ -10,11 +16,6 @@ const FormErrors = {
   INCORRECT_HASHTAG: 'Введен невалидный хэштег',
   LONG_DESCRIPTION: `Описание должно быть не длинее ${MAX_DESCRIPTION_LENGTH} символов`
 };
-
-const SCALE_STEP = 25;
-const MIN_SCALE = 25;
-const MAX_SCALE = 100;
-const DEFAULT_SCALE = 100;
 
 const EffectSetups = {
   none: {
@@ -104,17 +105,17 @@ const validateUniqueHashtags = (value) => {
 
 const updateScale = (value) => {
   scaleControlValue.value = `${value}%`;
-  imgUploadPreview.style.transform = `scale(${value / 100})`;
+  imgUploadPreview.style.transform = `scale(${value / SCALE_UPDATE})`;
 };
 
 const onScaleControlSmallerClick = () => {
-  const currentValue = parseInt(scaleControlValue.value, 10);
+  const currentValue = parseInt(scaleControlValue.value, PARSE_INT);
   const newValue = Math.max(currentValue - SCALE_STEP, MIN_SCALE);
   updateScale(newValue);
 };
 
 const onScaleControlBiggerClick = () => {
-  const currentValue = parseInt(scaleControlValue.value, 10);
+  const currentValue = parseInt(scaleControlValue.value, PARSE_INT);
   const newValue = Math.min(currentValue + SCALE_STEP, MAX_SCALE);
   updateScale(newValue);
 };
@@ -158,8 +159,6 @@ const resetEffects = () => {
 const formPressESCHandler = (evt) => {
   if (evt.key === 'Escape' && !isCursorInInputField()) {
     evt.preventDefault();
-    // eslint-disable-next-line no-use-before-define
-    closeForm();
   }
 };
 
