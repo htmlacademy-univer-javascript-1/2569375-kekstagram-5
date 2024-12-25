@@ -1,3 +1,5 @@
+const TIMEOUT_DELAY = 500;
+
 const getRandomInteger = (min, max) => {
   const lower = Math.ceil(Math.min(Math.abs(min), Math.abs(max)));
   const upper = Math.floor(Math.max(Math.abs(min), Math.abs(max)));
@@ -8,4 +10,12 @@ const getRandomInteger = (min, max) => {
 
 const getRandomElement = (items) => items[getRandomInteger(0, items.length - 1)];
 
-export { getRandomElement, getRandomInteger };
+const debounce = (callback, timeoutDelay = TIMEOUT_DELAY) => {
+  let timeoutId;
+  return (...rest) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => callback.apply(this, rest), timeoutDelay);
+  };
+};
+
+export { getRandomElement, getRandomInteger, debounce};

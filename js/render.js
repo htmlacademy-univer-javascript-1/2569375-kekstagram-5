@@ -1,5 +1,6 @@
 import { openBigPicture } from './bigpicture.js';
 import { getPhotos } from './data.js';
+import { init } from './filters.js';
 
 const thumbnailTemplate = document.querySelector('#picture').content.querySelector('.picture');
 const container = document.querySelector('.pictures');
@@ -33,12 +34,24 @@ const showError = (message) => {
   body.append(errorElement);
 };
 
+const renderFilteredThumbnails = (filteredPhotos) => {
+  const thumbnails = container.querySelectorAll('.picture');
+  thumbnails.forEach((thumbnail) => {
+    container.removeChild(thumbnail);
+  });
+
+  filteredPhotos.forEach((photo) => {
+    container.append(createThumbnail(photo));
+  });
+};
+
 const renderThumbnails = async () => {
   try {
     const photos = await getPhotos();
     photos.forEach((photo) => {
       container.append(createThumbnail(photo));
     });
+    init(photos, renderFilteredThumbnails);
   } catch (error) {
     showError(error.message);
   }
