@@ -65,6 +65,8 @@ const EffectSetups = {
 const DEFAULT_EFFECT = EffectSetups.none;
 let chosenEffect = DEFAULT_EFFECT;
 
+const uploadFileInput = document.getElementById('upload-file');
+const previewImage = document.querySelector('.img-upload__preview img');
 const form = document.querySelector('.img-upload__form');
 const fileField = form.querySelector('.img-upload__input');
 const overlay = form.querySelector('.img-upload__overlay');
@@ -82,6 +84,21 @@ const effectLevel = document.querySelector('.img-upload__effect-level');
 const submitButton = form.querySelector('.img-upload__submit');
 const successMessage = document.querySelector('#success').content.querySelector('.success');
 const errorMessage = document.querySelector('#error').content.querySelector('.error');
+
+uploadFileInput.addEventListener('change', () => {
+  const file = uploadFileInput.files[0];
+
+  if (file) {
+    const reader = new FileReader();
+
+    reader.addEventListener('load', () => {
+      previewImage.src = reader.result;
+      overlay.classList.remove('hidden');
+    });
+
+    reader.readAsDataURL(file);
+  }
+});
 
 const pristine = new Pristine(form, {
   classTo: 'img-upload__field-wrapper',
