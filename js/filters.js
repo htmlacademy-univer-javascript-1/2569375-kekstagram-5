@@ -27,13 +27,10 @@ const sortByComments = (pictureA, pictureB) =>
 const getFilteredPictures = () => {
   const filteredPictures = [...pictures];
   if (currentFilter === Filter.RANDOM) {
-    // Randomly shuffle and return a slice of the pictures
     return shuffleArray(filteredPictures).slice(0, PICTURE_COUNT);
   } else if (currentFilter === Filter.DISCUSSED) {
-    // Sort by the number of comments
     return filteredPictures.sort(sortByComments);
   }
-  // Return all pictures by default
   return filteredPictures;
 };
 

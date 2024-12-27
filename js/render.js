@@ -5,7 +5,6 @@ import { init } from './filters.js';
 const thumbnailTemplate = document.querySelector('#picture').content.querySelector('.picture');
 const container = document.querySelector('.pictures');
 const errorTemplate = document.querySelector('#error').content.querySelector('.error');
-const errorButton = errorTemplate.querySelector('.error__button');
 const body = document.querySelector('body');
 
 const createThumbnail = ({ url, description, likes, comments, id }) => {
@@ -28,9 +27,18 @@ const createThumbnail = ({ url, description, likes, comments, id }) => {
 const showError = (message) => {
   const errorElement = errorTemplate.cloneNode(true);
   errorElement.querySelector('.error__title').textContent = message;
-  errorButton.addEventListener('click', () => {
+
+  const closeError = () => {
     errorElement.remove();
+  };
+
+  errorElement.querySelector('.error__button').addEventListener('click', closeError);
+  errorElement.addEventListener('click', (evt) => {
+    if (evt.target === errorElement) {
+      closeError();
+    }
   });
+
   body.append(errorElement);
 };
 

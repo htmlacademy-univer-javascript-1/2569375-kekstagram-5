@@ -1,4 +1,5 @@
 import { sendData } from './api.js';
+
 const MAX_HASHTAGS = 5;
 const SCALE_STEP = 25;
 const MIN_SCALE = 25;
@@ -6,14 +7,6 @@ const MAX_SCALE = 100;
 const DEFAULT_SCALE = 100;
 const SCALE_UPDATE = 100;
 const MAX_DESCRIPTION_LENGTH = 140;
-const HASHTAG_REGEX = /^#[A-Za-z0-9а-яё]{1,19}$/i;
-
-const FormErrors = {
-  COUNT_EXCEEDED: `Максимальное количество хэштегов — ${MAX_HASHTAGS}`,
-  UNIQUE_HASHTAGS: 'Хэш-теги повторяются',
-  INCORRECT_HASHTAG: 'Введен невалидный хэштег',
-  LONG_DESCRIPTION: `Описание должно быть не длинее ${MAX_DESCRIPTION_LENGTH} символов`
-};
 
 const EffectSetups = {
   none: { filter: '', min: 0, max: 100, step: 1, unit: '' },
@@ -22,6 +15,16 @@ const EffectSetups = {
   marvin: { filter: 'invert', min: 0, max: 100, step: 1, unit: '%' },
   phobos: { filter: 'blur', min: 0, max: 3, step: 0.1, unit: 'px' },
   heat: { filter: 'brightness', min: 1, max: 3, step: 0.1, unit: '' }
+};
+
+const FormErrors = {
+  COUNT_EXCEEDED: 'Максимум 5 хэштегов',
+  UNIQUE_HASHTAGS: 'Хэштеги не должны повторяться',
+  INCORRECT_HASHTAG: 'Неверный формат хэштега',
+  LONG_DESCRIPTION: 'Комментарий слишком длинный',
+  INVALID_START: 'Хэш-тег должен начинаться с #',
+  INVALID_LENGTH: 'Максимальная длина хэш-тега 20 символов, включая #',
+  INVALID_CHARS: 'Хэш-тег может содержать только буквы и цифры'
 };
 
 const DEFAULT_EFFECT = EffectSetups.none;
@@ -49,26 +52,10 @@ const elements = {
   errorMessage: document.querySelector('#error').content.querySelector('.error')
 };
 
-elements.uploadFileInput.addEventListener('change', () => {
-  const file = elements.uploadFileInput.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.addEventListener('load', () => {
-      elements.previewImage.src = reader.result;
-      showForm();
-    });
-    reader.readAsDataURL(file);
-  }
-});
-
 const pristine = new Pristine(elements.form, {
   classTo: 'img-upload__field-wrapper',
   errorTextParent: 'img-upload__field-wrapper',
 });
-
-function validateDescriptionLength(value) {
-  return value.length <= MAX_DESCRIPTION_LENGTH || !value.length;
-}
 
 function splitHashtags(value) {
   return value.trim().split(/\s+/).filter((tag) => Boolean(tag.length));
@@ -86,7 +73,6 @@ function validateHashtagCount(value) {
 function formPressESCHandler(evt) {
   if (evt.key === 'Escape' && !isCursorInInputField()) {
     evt.preventDefault();
-    closeForm();
   }
 }
 
@@ -98,13 +84,22 @@ function showForm() {
 
 function validateHashtags(value) {
   const hashtags = splitHashtags(value);
-  return hashtags.length <= MAX_HASHTAGS && hashtags.every((tag) => HASHTAG_REGEX.test(tag));
+  return hashtags.every((tag) => {
+    if (!tag.startsWith('#')) {
+      return false;
+    }
+    const content = tag.slice(1);
+    if (!content.length || content.length > 19) {
+      return false;
+    }
+    return /^[A-Za-zА-Яа-яЁё0-9]+$/.test(content);
+  });
 }
 
-pristine.addValidator(elements.hashtagsField, validateHashtags, FormErrors.INCORRECT_HASHTAG);
+pristine.addValidator(elements.hashtagsField, validateHashtags, getHashtagError);
 
 function validateDescription(value) {
-  return !value.length || value.length <= MAX_DESCRIPTION_LENGTH;
+  return value.length < MAX_DESCRIPTION_LENGTH;
 }
 
 pristine.addValidator(elements.descriptionField, validateDescription, FormErrors.LONG_DESCRIPTION);
@@ -184,9 +179,15 @@ function formFileIsSelectedHandler(evt) {
 elements.fileField.addEventListener('change', formFileIsSelectedHandler);
 
 function onDocumentKeydown(evt) {
-  if (evt.key === 'Escape' && !isCursorInInputField()) {
-    evt.preventDefault();
-    closeForm();
+  if (evt.key === 'Escape') {
+    if (document.querySelector('.success')) {
+      hideMessage();
+    } else if (document.querySelector('.error')) {
+      hideMessage();
+      evt.stopPropagation();
+    } else if (!isCursorInInputField()) {
+      closeForm();
+    }
   }
 }
 
@@ -223,7 +224,10 @@ function showErrorMessage(message) {
 
 function onFormSubmit(evt) {
   evt.preventDefault();
-  elements.submitButton.disabled = true; // Disable submit button
+  if (!pristine.validate()) {
+    return;
+  }
+  elements.submitButton.disabled = true;
   const formData = new FormData(evt.target);
   sendData(formData)
     .then(() => {
@@ -234,14 +238,34 @@ function onFormSubmit(evt) {
       showErrorMessage(error.message);
     })
     .finally(() => {
-      elements.submitButton.disabled = false; // Re-enable button after submission
+      elements.submitButton.disabled = false;
     });
 }
 
-elements.closeButton.addEventListener('click', closeForm);
-elements.scaleControlSmaller.addEventListener('click', onScaleControlSmallerClick);
-elements.scaleControlBigger.addEventListener('click', onScaleControlBiggerClick);
-document.addEventListener('keydown', onDocumentKeydown);
+function getHashtagError(value) {
+  const hashtags = splitHashtags(value);
+  for (const tag of hashtags) {
+    if (!tag.startsWith('#')) {
+      return FormErrors.INVALID_START;
+    }
+    if (tag.length > 20) {
+      return FormErrors.INVALID_LENGTH;
+    }
+    if (!/^#[A-Za-zА-Яа-яЁё0-9]+$/.test(tag)) {
+      return FormErrors.INVALID_CHARS;
+    }
+  }
+  return null;
+}
+
+elements.uploadFileInput.addEventListener('change', () => {
+  const file = elements.uploadFileInput.files[0];
+  if (file) {
+    const blobUrl = URL.createObjectURL(file);
+    elements.previewImage.src = blobUrl;
+    showForm();
+  }
+});
 
 noUiSlider.create(elements.effectLevelSlider, {
   range: { min: DEFAULT_EFFECT.min, max: DEFAULT_EFFECT.max },
@@ -250,10 +274,15 @@ noUiSlider.create(elements.effectLevelSlider, {
   connect: 'lower'
 });
 
+elements.closeButton.addEventListener('click', closeForm);
+elements.scaleControlSmaller.addEventListener('click', onScaleControlSmallerClick);
+elements.scaleControlBigger.addEventListener('click', onScaleControlBiggerClick);
+document.addEventListener('keydown', onDocumentKeydown);
+
 elements.effectLevelSlider.noUiSlider.on('update', updateEffect);
 document.querySelector('.effects__list').addEventListener('change', onEffectChange);
 
-pristine.addValidator(elements.descriptionField, validateDescriptionLength, FormErrors.LONG_DESCRIPTION);
+pristine.addValidator(elements.descriptionField, validateDescription, FormErrors.LONG_DESCRIPTION);
 pristine.addValidator(elements.hashtagsField, validateUniqueHashtags, FormErrors.UNIQUE_HASHTAGS);
 pristine.addValidator(elements.hashtagsField, validateHashtags, FormErrors.INCORRECT_HASHTAG);
 pristine.addValidator(elements.hashtagsField, validateHashtagCount, FormErrors.COUNT_EXCEEDED);
