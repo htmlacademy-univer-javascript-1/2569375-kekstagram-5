@@ -1,3 +1,5 @@
+const COMMENTS_PER_PAGE = 5;
+
 const pictureContainer = document.querySelector('.big-picture');
 const pictureImage = document.querySelector('.big-picture__img img');
 const pictureCaption = document.querySelector('.social__caption');
@@ -5,14 +7,14 @@ const pictureLikesCount = document.querySelector('.likes-count');
 const pictureCloseButton = document.querySelector('.big-picture__cancel');
 
 const commentsContainer = document.querySelector('.social__comment-count');
-const commentsCount = document.querySelector('.comments-count');
+const commentsCount = document.querySelector('.social__comment-total-count');
 const commentsList = document.querySelector('.social__comments');
 const commentsLoader = document.querySelector('.comments-loader');
 
-let currentComments = [];
-let commentsShown = 0;
-
-const COMMENTS_PER_PAGE = 5;
+const commentsRender = {
+  currentComments: [],
+  commentsShown: 0,
+};
 
 const onCloseButtonClick = () => {
   closeBigPicture();
@@ -52,18 +54,20 @@ const renderComments = (comments) => {
 };
 
 const updateCommentCount = () => {
-  commentsContainer.textContent = `${commentsShown} из ${currentComments.length}`;
+  commentsContainer.textContent = `${commentsRender.commentsShown} из ${commentsRender.currentComments.length} комментариев`;
 };
 
 const loadMoreComments = () => {
-  const end = Math.min(commentsShown + COMMENTS_PER_PAGE, currentComments.length);
-  const newComments = currentComments.slice(commentsShown, end);
+  const end = Math.min(commentsRender.commentsShown + COMMENTS_PER_PAGE, commentsRender.currentComments.length);
+  const newComments = commentsRender.currentComments.slice(commentsRender.commentsShown, end);
   renderComments(newComments);
-  commentsShown = end;
+  commentsRender.commentsShown = end;
   updateCommentCount();
 
-  if (commentsShown >= currentComments.length) {
+  if (commentsRender.commentsShown >= commentsRender.currentComments.length) {
     commentsLoader.classList.add('hidden');
+  } else {
+    commentsLoader.classList.remove('hidden');
   }
 };
 
@@ -98,17 +102,12 @@ function openBigPicture (data) {
   document.body.classList.add('modal-open');
 
   fillBigPicture(data);
-  currentComments = data.comments;
-  commentsShown = 0;
+  commentsRender.currentComments = data.comments;
+  commentsRender.commentsShown = 0;
   commentsList.innerHTML = '';
-  loadMoreComments();
+  loadMoreComments(data);
   commentsContainer.classList.remove('hidden');
-
-  if (currentComments.length > COMMENTS_PER_PAGE) {
-    commentsLoader.classList.remove('hidden');
-  } else {
-    commentsLoader.classList.add('hidden');
-  }
+  commentsLoader.classList.toggle('hidden', commentsRender.currentComments.length <= COMMENTS_PER_PAGE);
 
   createListeners();
 }
